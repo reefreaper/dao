@@ -39,11 +39,22 @@ contract DAO {
     // Allow contract to receive ETH
     receive() external payable {}
 
+    modifier onlyInvestor() {
+        require(
+            Token(token).balanceOf(msg.sender) > 0,
+            "Must be token holder"
+        );
+        _;
+    }
+
     function createProposal(
         string memory _name,
         uint256 _amount,
         address payable _recipient
-    ) external {
+    ) external onlyInvestor {
+        require(address(this).balance >= _amount, "Insufficient funds");
+
+        // Increment proposal count
         proposalCount++;
 
         // Create proposal
