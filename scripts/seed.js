@@ -45,9 +45,35 @@ async function main() {
 
     console.log(`Fething DAO ...\n`)
     
-    // fetch DAO contract
+    // fetch deployed contract
     const dao = await ethers.getContractAt('DAO', '0x5FbDB2315678afecb367f032d93F642f64180aa3')
     console.log(`DAO fetched: ${dao.address}\n`)
+
+    // Send 100 ether to DAO treasury for Governance
+    transaction = await funder.sendTransaction({to: dao.address, value: ether(1000)})
+    await transaction.wait()
+    console.log(`Sent funds to DAO treasury\n`)
+
+    for (var i = 0; i < 3; i++) {
+        // create proposal
+        transaction = await dao.connect(investor1).createProposal(`Proposal ${i + 1}`, ether(100), recipient.address)
+        await transaction.wait()
+        console.log(`Created proposal ${i}\n`)
+
+        // vote 1
+        transaction = await dao.connect(investor1).vote(i + 1)
+
+        // vote 2
+        transaction = await dao.connect(investor2).vote(i + 1)
+
+        // vote 3
+        transaction = await dao.connect(investor3).vote(i + 1)
+        await transaction.wait()
+        console.log(`Voted on proposal ${i}\n`)
+
+        // finalize
+
+    } 
 
 
 }
