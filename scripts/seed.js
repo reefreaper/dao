@@ -5,6 +5,7 @@
 // will compile your contracts, add the Hardhat Runtime Environment's members to the
 // global scope, and execute the script.
 const hre = require("hardhat");
+const config = require('../src/config.json')
 
 const tokens = (n) => {
   return ethers.utils.parseUnits(n.toString(), 'ether')
@@ -25,9 +26,12 @@ async function main() {
 
     let transaction
 
+    // Fetch network
+    const { chainId } = await ethers.provider.getNetwork()
+
     console.log(`Fetching token and transfering to accounts...\n`)
 
-    const token = await ethers.getContractAt('Token', '0x5FbDB2315678afecb367f032d93F642f64180aa3')
+    const token = await ethers.getContractAt('Token', config[chainId].token.address)
     console.log(`Token fetched: ${token.address}\n`)
 
     // Send tokens to investors each one gets 20%
@@ -46,7 +50,7 @@ async function main() {
     console.log(`Fething DAO ...\n`)
     
     // fetch deployed contract
-    const dao = await ethers.getContractAt('DAO', '0x5FbDB2315678afecb367f032d93F642f64180aa3')
+    const dao = await ethers.getContractAt('DAO', config[chainId].dao.address)
     console.log(`DAO fetched: ${dao.address}\n`)
 
     // Send 100 ether to DAO treasury for Governance
@@ -72,6 +76,27 @@ async function main() {
         console.log(`Voted on proposal ${i}\n`)
 
         // finalize
+        transaction = await dao.connect(investor1).finalizeProposal(i + 1)
+        await transaction.wait()
+        console.log(`Finalized proposal ${i}\n`)
+
+        // Create one more proposal
+        transaction = await dao.connect(investor1).createProposal(`Proposal 4`, ether(100), recipient.address)
+        await transaction.wait()
+
+        // vote 1
+        transaction = await dao.connect(investor1).vote(4)
+        await transaction.wait()
+
+        // vote 2
+        transaction = await dao.connect(investor2).vote(4)
+        await transaction.wait()
+
+        // vote 3
+        transaction = await dao.connect(investor3).vote(4)
+        await transaction.wait()
+
+        console.log(`Finished.\n`)
 
     } 
 
