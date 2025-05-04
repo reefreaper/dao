@@ -22,6 +22,7 @@ async function main() {
   const DAO = await hre.ethers.getContractFactory('DAO')
   const dao = await DAO.deploy(token.address, '500000000000000000000001')
   await dao.deployed()
+
   console.log(`DAO deployed to: ${dao.address}\n`)
 }
 
